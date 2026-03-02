@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useState } from 'react';
 import { storage } from '../services/storage';
 
 export const AuthContext = createContext();
@@ -6,21 +7,18 @@ export const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
+    const [user, setUser] = useState(() => {
         const session = storage.get('session');
         if (session) {
             const now = new Date().getTime();
             if (now < session.expiry) {
-                setUser(session.user);
-            } else {
-                storage.remove('session'); // Expired
+                return session.user;
             }
+            storage.remove('session'); // Expired
         }
-        setLoading(false);
-    }, []);
+        return null;
+    });
+    const [loading] = useState(false);
 
     const login = (email, password) => {
         const users = storage.get('users', []);

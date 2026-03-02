@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect } from 'react';
 import { storage } from '../services/storage';
 import { useAuth } from './AuthContext';
@@ -8,17 +9,15 @@ export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
     const { user } = useAuth();
-    const [cart, setCart] = useState([]);
+    const [cart, setCart] = useState(() => {
+        return user ? storage.get(`cart_${user.email}`, []) : [];
+    });
+    const [prevUserEmail, setPrevUserEmail] = useState(user?.email);
 
-    useEffect(() => {
-        if (user) {
-            // Load cart for specific user from local storage
-            const userCart = storage.get(`cart_${user.email}`, []);
-            setCart(userCart);
-        } else {
-            setCart([]); // Clear cart when user is logged out
-        }
-    }, [user]);
+    if (user?.email !== prevUserEmail) {
+        setPrevUserEmail(user?.email);
+        setCart(user ? storage.get(`cart_${user.email}`, []) : []);
+    }
 
     useEffect(() => {
         if (user) {
